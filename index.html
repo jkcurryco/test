@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f3ec">
+  <title>Equation Solver</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f4f3ec;
+      --ink: #1b2b28;
+      --muted: #64716b;
+      --line: #cbd1c7;
+      --accent: #c6f36b;
+      --error: #a13e31;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      background-color: var(--paper);
+      background-image: linear-gradient(rgba(27, 43, 40, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(27, 43, 40, .035) 1px, transparent 1px);
+      background-size: 32px 32px;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+    }
+
+    main {
+      width: min(100% - 40px, 760px);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: clamp(36px, 10vh, 92px) 0 48px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 34px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #527d50;
+      content: "";
+    }
+
+    h1 {
+      max-width: 650px;
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(48px, 9vw, 82px);
+      font-weight: 400;
+      line-height: .99;
+      letter-spacing: 0;
+    }
+
+    .intro {
+      margin: 22px 0 54px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.6;
+    }
+
+    form { width: 100%; }
+
+    label {
+      display: block;
+      margin-bottom: 12px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .input-row {
+      display: flex;
+      align-items: stretch;
+      min-height: 68px;
+      border: 1px solid var(--ink);
+      background: rgba(255, 255, 255, .72);
+      box-shadow: 5px 5px 0 var(--ink);
+    }
+
+    input {
+      width: 100%;
+      min-width: 0;
+      padding: 18px 20px;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--ink);
+      font: 20px Georgia, "Times New Roman", serif;
+    }
+
+    input::placeholder { color: #929b93; }
+    .input-row:focus-within { outline: 3px solid var(--accent); }
+
+    button {
+      flex: 0 0 auto;
+      min-width: 112px;
+      margin: 6px;
+      padding: 0 20px;
+      border: 0;
+      background: var(--accent);
+      color: var(--ink);
+      font: 700 14px "Trebuchet MS", "Segoe UI", sans-serif;
+      cursor: pointer;
+    }
+
+    button:hover { background: #b6e651; }
+    button:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+    .result {
+      min-height: 164px;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+    }
+
+    .result-label {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+
+    #answer {
+      margin: 0;
+      overflow-wrap: anywhere;
+      font: 400 clamp(30px, 6vw, 48px)/1.2 Georgia, "Times New Roman", serif;
+    }
+
+    #answer[data-state="error"] { color: var(--error); font: 600 18px/1.5 "Trebuchet MS", "Segoe UI", sans-serif; }
+    #answer[data-state="empty"] { color: #909991; font-size: 25px; }
+
+    footer {
+      margin-top: auto;
+      padding-top: 40px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (max-width: 520px) {
+      main { width: min(100% - 32px, 760px); }
+      .intro { margin-bottom: 40px; }
+      .input-row { min-height: 60px; }
+      input { padding: 14px; font-size: 17px; }
+      button { min-width: 86px; padding: 0 12px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">A little help with the numbers</p>
+    <h1>Make the unknown known.</h1>
+    <p class="intro">Enter an equation and solve for its variables.</p>
+
+    <form id="solver-form">
+      <label for="equation">Your equation</label>
+      <div class="input-row">
+        <input id="equation" name="equation" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. 2x + 3 = 7" aria-describedby="answer" required>
+        <button type="submit">Enter</button>
+      </div>
+    </form>
+
+    <section class="result" aria-live="polite" aria-atomic="true">
+      <p class="result-label">Answer</p>
+      <p id="answer" data-state="empty">Your solution will appear here.</p>
+    </section>
+
+    <footer>Supports equations with one or more variables.</footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/nerdamer.core.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Algebra.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Calculus.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Solve.js"></script>
+  <script>
+    const form = document.querySelector("#solver-form");
+    const equationInput = document.querySelector("#equation");
+    const answer = document.querySelector("#answer");
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const equation = equationInput.value.trim();
+
+      try {
+        if (!equation || !window.nerdamer) throw new Error("Invalid equation");
+        const solutions = window.nerdamer.solveEquations(equation);
+        const formatted = Array.isArray(solutions)
+          ? solutions.map((solution) => Array.isArray(solution) ? solution.join(" = ") : String(solution)).join("; ")
+          : String(solutions);
+
+        if (!formatted || formatted === "[]") throw new Error("No solution found");
+        answer.textContent = formatted;
+        answer.dataset.state = "success";
+      } catch {
+        answer.textContent = "Invalid equation.";
+        answer.dataset.state = "error";
+      }
+    });
+  </script>
+</body>
+</html>
